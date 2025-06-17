@@ -57,3 +57,7 @@ export const refreshUserService = async ({ sessionId, refreshToken }) => {
     refreshTokenValidUntil,
   });
 };
+
+export const logoutUserService = async (sessionId) => {
+  await SessionModel.deleteOne({ _id: sessionId });
+};

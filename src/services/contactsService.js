@@ -6,11 +6,12 @@ export const getAllContactsService = async ({
   perPage,
   sortBy = '_id',
   sortOrder = 'asc',
+  userId,
 }) => {
   const limit = perPage;
   const skip = (page - 1) * perPage;
-  const contactQuery = ContactModel.find();
-  const contactsCount = await ContactModel.find()
+  const contactQuery = ContactModel.find({userId});
+  const contactsCount = await ContactModel.find({userId})
     .merge(contactQuery)
     .countDocuments();
   const contacts = await contactQuery
@@ -26,18 +27,18 @@ export const getAllContactsService = async ({
   return { data: contacts, ...paginationData };
 };
 
-export const getContactByIdService = async (id) => {
-  return await ContactModel.findOne({ _id: id });
+export const getContactByIdService = async (id, userId) => {
+  return await ContactModel.findOne({ _id: id, userId});
 };
 
 export const createContactService = async (data) => {
   return await ContactModel.create(data);
 };
 
-export const updateContactService = async (id, data) => {
-  return await ContactModel.findOneAndUpdate({ _id: id }, data, { new: true });
+export const updateContactService = async (id, userId, data) => {
+  return await ContactModel.findOneAndUpdate({ _id: id, userId }, data, { new: true });
 };
 
-export const deleteContactByIdService = async (id) => {
-  return await ContactModel.findOneAndDelete({ _id: id });
+export const deleteContactByIdService = async (id, userId) => {
+  return await ContactModel.findOneAndDelete({ _id: id, userId});
 };
