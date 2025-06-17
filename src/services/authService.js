@@ -3,6 +3,10 @@ import bcrypt from 'bcrypt';
 import { UserModel } from '../db/models/User.js';
 import { SessionModel } from '../db/models/Session.js';
 import { randomBytes } from 'crypto';
+import { getEnvVar } from '../utils/getEnvVar.js';
+import jwt from 'jsonwebtoken';
+import { sendEmail } from '../utils/sendMail.js';
+import { SMTP } from '../constants/index.js';
 
 export const registerUserService = async (body) => {
   const user = await UserModel.findOne({ email: body.email });
@@ -60,4 +64,28 @@ export const refreshUserService = async ({ sessionId, refreshToken }) => {
 
 export const logoutUserService = async (sessionId) => {
   await SessionModel.deleteOne({ _id: sessionId });
+};
+
+export const resetEmailService = async (email) => {
+  const user = await UserModel.findOne({ email });
+  if (!user) {
+    throw createHttpError(404, 'User is not found');
+  }
+  const resetToken = jwt.sign(
+    {
+      sub: user._id,
+      email,
+    },
+    getEnvVar('JWT_SECRET'),
+    {
+      expiresIn: '15m',
+    },
+  );
+
+  await sendEmail({
+    from: getEnvVar(SMTP.SMTP_FROM),
+    to: email,
+    subject: 'Reset your password',
+    html: `<p>Click <a href="${resetToken}">here</a> to reset your password!</p>`,
+  });
 };
