@@ -43,6 +43,7 @@ export const getContactByIdController = async (req, res, next) => {
 
 export const createContactController = async (req, res, next) => {
   const userId = req.user._id;
+  console.log(req.file)
   const data = await createContactService({ ...req.body, userId });
   res.status(201).json({
     status: 201,
@@ -72,3 +73,4 @@ export const deleteContactByIdController = async (req, res, next) => {
   }
   res.status(204).send();
 };
+
