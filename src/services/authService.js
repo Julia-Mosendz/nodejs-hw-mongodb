@@ -117,7 +117,7 @@ export const resetPwdService = async (body) => {
     if (err instanceof Error) throw createHttpError(401, err.message);
     throw err;
   }
-console.log ("ERROR", entries)
+  console.log('ERROR', entries);
   const user = await UserModel.findOne({
     email: entries.email,
     _id: entries.sub,

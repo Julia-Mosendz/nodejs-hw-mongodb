@@ -8,6 +8,9 @@ import {
 } from '../services/contactsService.js';
 import { parsePaginationParams } from '../utils/parsePaginationParams.js';
 import { parseSortParams } from '../utils/parseSortParams.js';
+import { saveFileToUploadDir } from '../utils/saveFileToUploadDir.js';
+import { saveFileToCloudinary } from '../utils/saveFileToCloudinary.js';
+import { getEnvVar } from '../utils/getEnvVar.js';
 
 export const getAllContactsController = async (req, res, next) => {
   const { page, perPage } = parsePaginationParams(req.query);
@@ -43,8 +46,24 @@ export const getContactByIdController = async (req, res, next) => {
 
 export const createContactController = async (req, res, next) => {
   const userId = req.user._id;
-  console.log(req.file)
-  const data = await createContactService({ ...req.body, userId });
+
+  const photo = req.file;
+
+  let photoUrl;
+
+  if (photo) {
+    if (getEnvVar('ENABLE_CLOUDINARY') === 'true') {
+      photoUrl = await saveFileToCloudinary(photo);
+    } else {
+      photoUrl = await saveFileToUploadDir(photo);
+    }
+  }
+
+  const data = await createContactService({
+    ...req.body,
+    userId,
+    photo: photoUrl,
+  });
   res.status(201).json({
     status: 201,
     message: 'Successfully created a contact!',
@@ -54,7 +73,23 @@ export const createContactController = async (req, res, next) => {
 
 export const updateContactController = async (req, res, next) => {
   const userId = req.user._id;
-  const data = await updateContactService(req.params.id, userId, req.body);
+
+  const photo = req.file;
+
+  let photoUrl;
+
+  if (photo) {
+    if (getEnvVar('ENABLE_CLOUDINARY') === 'true') {
+      photoUrl = await saveFileToCloudinary(photo);
+    } else {
+      photoUrl = await saveFileToUploadDir(photo);
+    }
+  }
+
+  const data = await updateContactService(req.params.id, userId, {
+    ...req.body,
+    photo: photoUrl,
+  });
   if (!data) {
     throw createHttpError(404, 'contact is not found');
   }
@@ -73,4 +108,3 @@ export const deleteContactByIdController = async (req, res, next) => {
   }
   res.status(204).send();
 };
-
